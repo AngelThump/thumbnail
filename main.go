@@ -34,7 +34,7 @@ func main() {
 	mainWg.Wait()
 }
 
-func WaitTimeout(wg *sync.WaitGroup, timeout time.Duration, stream api.Stream) bool {
+func WaitTimeout(wg *sync.WaitGroup, timeout time.Duration, stream api.Stream) {
 	ch := make(chan struct{})
 	go func() {
 		wg.Wait()
@@ -43,13 +43,17 @@ func WaitTimeout(wg *sync.WaitGroup, timeout time.Duration, stream api.Stream) b
 	}()
 	select {
 	case <-ch:
-		return true
+		return
 	case <-time.After(timeout):
-		return false
+		log.Printf("[%s] Timed out saving thumbnail", stream.User.Username)
+		return
 	}
 }
 
 func check() {
+	os.RemoveAll(path)
+	os.MkdirAll(path, 0777)
+
 	streams := api.Find()
 	if streams == nil {
 		time.AfterFunc(60*time.Second, func() {
