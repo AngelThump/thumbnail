@@ -34,6 +34,21 @@ func main() {
 	mainWg.Wait()
 }
 
+func WaitTimeout(wg *sync.WaitGroup, timeout time.Duration, stream api.Stream) bool {
+	ch := make(chan struct{})
+	go func() {
+		wg.Wait()
+		saveThumbnail(stream)
+		close(ch)
+	}()
+	select {
+	case <-ch:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
+}
+
 func check() {
 	streams := api.Find()
 	if streams == nil {
@@ -43,8 +58,16 @@ func check() {
 		return
 	}
 
+	maxGoroutines := 3
+	guard := make(chan struct{}, maxGoroutines)
+
 	for _, stream := range streams {
-		go saveThumbnail(stream)
+		guard <- struct{}{}
+		go func(stream api.Stream) {
+			var wg sync.WaitGroup
+			WaitTimeout(&wg, 10*time.Second, stream)
+			<-guard
+		}(stream)
 	}
 
 	time.AfterFunc(300*time.Second, func() {
