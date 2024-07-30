@@ -1,6 +1,7 @@
 package main
 
 import (
+	b64 "encoding/base64"
 	"log"
 	"os"
 	"os/exec"
@@ -80,8 +81,9 @@ func check() {
 }
 
 func saveThumbnail(stream api.Stream) {
-	log.Printf("[%s] Executing ffmpeg: %s", stream.User.Username, "ffmpeg -y -i rtmp://"+stream.Ingest.Server+".angelthump.com/live/"+stream.User.Username+" -vframes 1 -f image2 "+path+stream.User.Username+".jpeg")
-	cmd := exec.Command("ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", "rtmp://"+stream.Ingest.Server+".angelthump.com/live/"+stream.User.Username+"?key="+utils.Config.Ingest.AuthKey, "-vframes", "1", "-f", "image2", path+stream.User.Username+".jpeg")
+	base64String := b64.StdEncoding.EncodeToString([]byte(stream.Created_at + stream.User.Username))
+	log.Printf("[%s] Executing ffmpeg: %s", stream.User.Username, "ffmpeg -y -i "+utils.Config.Ingest.Hostname+"/hls/"+base64String+"_"+stream.User.Username+"/index.m3u8 -vframes 1 -f image2 "+path+stream.User.Username+".jpeg")
+	cmd := exec.Command("ffmpeg", "-hide_banner", "-loglevel", "panic", "-y", "-i", utils.Config.Ingest.Hostname+"/hls/"+base64String+"_"+stream.User.Username+"/index.m3u8", "-vframes", "1", "-f", "image2", path+stream.User.Username+".jpeg")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Run()

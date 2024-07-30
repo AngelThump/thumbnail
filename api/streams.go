@@ -9,7 +9,8 @@ import (
 )
 
 type Stream struct {
-	Ingest struct {
+	Created_at string `json:"createdAt"`
+	Ingest     struct {
 		Server string `json:"server"`
 		Url    string `json:"url"`
 	} `json:"ingest"`

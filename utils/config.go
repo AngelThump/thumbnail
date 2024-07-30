@@ -16,7 +16,10 @@ type ConfigStruct struct {
 	} `json:"streamsApi"`
 	Path   string `json:"path"`
 	Ingest struct {
-		AuthKey string `json:"authKey"`
+		AuthKey  string `json:"authKey"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Hostname string `json:"hostname"`
 	}
 }
 
